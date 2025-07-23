@@ -26,6 +26,8 @@ router.register('expenses', views.ExpenseViewSet, basename='expense')
 urlpatterns = [
     # add api url
     # configure rest_framework browsable api
+    # add route to index.html
+    path('', views.index, name='index'),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(router.urls)),
 
