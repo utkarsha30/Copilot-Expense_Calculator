@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
     />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
     <style></style>
   </head>
 
@@ -35,13 +36,40 @@
           })
           .catch((error) => console.error("Error fetching expenses:", error));
       }
-      function postExpense() {}
+      function postExpense() {
+        // name, amount, category( food, transport, entertainment, utilities, other)
+
+        const csrfToken = document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content");
+        const expense = {
+          name: "Test Expense",
+          amount: 100.0,
+          category: "transport",
+        };
+        fetch(apiUri, {
+          method: "POST",
+          headers: {
+            ...headers,
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify(expense),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            renderExpense(data);
+          })
+          .catch((error) => console.error("Error posting expense:", error));
+      }
+
       function deleteExpense(id) {}
       // const table = document.createElement('table');
       // document.body.appendChild(table);
       // refreshTable();
       // document.querySelector("input[type='submit']").addEventListener('click', postExpense);
+
       getExpenses();
+      postExpense();
     </script>
   </body>
 </html>
