@@ -20,10 +20,95 @@
       const headers = {
         "Content-Type": "application/json",
       };
+
       function renderExpense(expense) {
-        console.table(expense);
+        // Validate the expense object
+        if (
+          !expense ||
+          !expense.id ||
+          !expense.name ||
+          !expense.amount ||
+          !expense.timestamp
+        ) {
+          console.error("Invalid expense data:", expense);
+          return;
+        }
+
+        // Find the table element
+        const table = document.querySelector("table");
+        if (!table) {
+          console.error("Table element not found.");
+          return;
+        }
+
+        // Warn about potential issues
+        if (expense.amount < 0) {
+          console.warn("Negative expense amount detected:", expense.amount);
+        }
+        if (!expense.category) {
+          console.warn("Expense category is missing, using 'other'.");
+          expense.category = "other";
+        }
+
+        // Parse and format the timestamp
+        let timestampString;
+        try {
+          const timestamp = new Date(expense.timestamp);
+          if (isNaN(timestamp)) {
+            throw new Error("Invalid timestamp");
+          }
+          timestampString = timestamp.toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+        } catch (error) {
+          console.warn("Invalid timestamp, using current time.");
+          const currentTimestamp = new Date();
+          timestampString = currentTimestamp.toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+        }
+
+        // Create a new table row
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+    <td>${expense.name}</td>
+    <td>${expense.amount}</td>
+    <td>${timestampString}</td>
+    <td>${expense.category}</td>
+  `;
+
+        // Add a delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "X";
+        deleteButton.classList.add("delete-button");
+        deleteButton.addEventListener("click", () => {
+          deleteExpense(expense.id);
+        });
+
+        // Wrap the delete button in a <td> and append it to the row
+        const deleteTd = document.createElement("td");
+        deleteTd.appendChild(deleteButton);
+        tr.appendChild(deleteTd);
+
+        // Append the row to the table
+        table.appendChild(tr);
       }
-      function refreshTable() {}
+
+      function refreshTable() {
+        table.innerHTML = "";
+        getExpenses();
+      }
+
       function getExpenses() {
         fetch(apiUri, {
           method: "GET",
@@ -36,6 +121,7 @@
           })
           .catch((error) => console.error("Error fetching expenses:", error));
       }
+
       function postExpense() {
         // name, amount, category( food, transport, entertainment, utilities, other)
 
@@ -62,13 +148,39 @@
           .catch((error) => console.error("Error posting expense:", error));
       }
 
-      function deleteExpense(id) {}
-      // const table = document.createElement('table');
+      function deleteExpense(id) {
+        // api uri ends with trailing slash
+        fetch(`${apiUri}${id}/`, {
+          method: "DELETE",
+          headers: {
+            ...headers,
+            "X-CSRFToken": document
+              .querySelector('meta[name="csrf-token"]')
+              .getAttribute("content"),
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log(`Expense with pk ${id} deleted successfully.`);
+              refreshTable();
+            } else {
+              console.error("Error deleting expense:", response.statusText);
+            }
+          })
+          .catch((error) => console.error("Error deleting expense:", error));
+      }
+      const table = document.createElement("table");
+      const container = document.querySelector(".container");
+      if (!container) {
+        console.error("Container element not found.");
+      } else {
+        container.appendChild(table);
+      }
       // document.body.appendChild(table);
-      // refreshTable();
+      refreshTable();
       // document.querySelector("input[type='submit']").addEventListener('click', postExpense);
-
-      getExpenses();
+      // deleteExpense(7);
+      //getExpenses();
       postExpense();
     </script>
   </body>
