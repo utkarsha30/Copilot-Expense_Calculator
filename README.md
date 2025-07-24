@@ -43,4 +43,7 @@ This project was created to experiment with and explore how **GitHub Copilot** u
 1. **Clone the repository**
    ```bash
    git clone https://github.com/utkarsha30/Copilot-Expense_Calculator.git
+   ```
+   ```bash
    cd expense_calculator 
+   ```
